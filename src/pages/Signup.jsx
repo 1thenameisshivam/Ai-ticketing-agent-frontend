@@ -7,8 +7,9 @@ import { getSignUp } from "../axios/api";
 import toast from "react-hot-toast";
 
 const Signup = () => {
+  // eslint-disable-next-line no-unused-vars
   const onFinishFailed = (errorInfo) => {
-    console.log("Failed:", errorInfo);
+    // Handle form submission failure
   };
   const { mutate: signupMutation } = useMutation({
     mutationFn: async (values) => getSignUp(values),
@@ -86,5 +87,4 @@ const Signup = () => {
     </>
   );
 };
-
 export default Signup;

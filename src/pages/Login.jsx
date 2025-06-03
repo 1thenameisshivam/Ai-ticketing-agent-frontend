@@ -38,7 +38,7 @@ const Login = () => {
             <div
               className="w-[40%] h-[100%] bg-teal-600 bg-center bg-cover bg-no-repeat"
               style={{
-                backgroundImage: "url('/signup2.svg')",
+                backgroundImage: "url('/login1.svg')",
                 backgroundSize: "80%",
               }}
             ></div>
@@ -87,7 +87,7 @@ const Login = () => {
                   </Form.Item>
                 </Form>
                 <p>
-                  New to this platform <Link to={"/login"}>Register here</Link>
+                  New to this platform <Link to={"/signup"}>Register here</Link>
                 </p>
               </Card>
             </div>

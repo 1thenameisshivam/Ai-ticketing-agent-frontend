@@ -6,6 +6,9 @@ import Home from "./pages/Home";
 import NonAuth from "./layouts/NonAuth";
 import Authenticated from "./layouts/Authenticated";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Ticket from "./pages/Ticket";
+import Create from "./pages/Create";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +21,17 @@ const router = createBrowserRouter([
         children: [
           {
             path: "/",
-            Component: Home,
+            Component: Dashboard,
+            children: [
+              {
+                path: "/",
+                Component: Ticket,
+              },
+              {
+                path: "/create",
+                Component: Create,
+              },
+            ],
           },
         ],
       },

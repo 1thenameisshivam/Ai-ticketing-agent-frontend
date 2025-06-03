@@ -1,10 +1,15 @@
-import { App } from "antd";
+import App from "./App";
 import { createBrowserRouter } from "react-router";
+import Signup from "./pages/Signup";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    Component: App,
+  },
+  {
+    path: "/signup",
+    Component: Signup,
   },
 ]);
 

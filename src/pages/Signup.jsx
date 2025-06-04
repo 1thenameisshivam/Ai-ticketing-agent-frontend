@@ -5,18 +5,19 @@ import { LockOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import { getSignUp } from "../axios/api";
 import toast from "react-hot-toast";
-import { Link, Navigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const Signup = () => {
   // eslint-disable-next-line no-unused-vars
   const onFinishFailed = (errorInfo) => {
     // Handle form submission failure
   };
+  const navigate = useNavigate();
   const { mutate: signupMutation } = useMutation({
     mutationFn: async (values) => getSignUp(values),
     onSuccess: () => {
       toast.success("Signup successful!🎉");
-      return <Navigate to={"/"} replace={true} />;
+      navigate("/", { replace: true });
     },
     onError: (error) => {
       toast.error(

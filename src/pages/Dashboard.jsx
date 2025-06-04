@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { DesktopOutlined, PieChartOutlined } from "@ant-design/icons";
-import { Breadcrumb, Layout, Menu } from "antd";
-import { NavLink, Outlet } from "react-router";
+import { Breadcrumb, Button, Layout, Menu } from "antd";
+import { NavLink, Outlet, useNavigate } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getLogout } from "../axios/api";
+import { userStore } from "../zustand/store";
+import toast from "react-hot-toast";
 
 const { Header, Content, Footer, Sider } = Layout;
-
 function getItem(label, key, icon, children) {
   return {
     key,
@@ -13,15 +16,28 @@ function getItem(label, key, icon, children) {
     label,
   };
 }
-
 const items = [
   getItem(<NavLink to={"/"}>Ticket</NavLink>, "1", <PieChartOutlined />),
   getItem(<NavLink to={"/create"}>Create</NavLink>, "2", <DesktopOutlined />),
 ];
-
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
-
+  const navigate = useNavigate();
+  const { clearUser } = userStore();
+  const { refetch } = useQuery({
+    queryKey: ["logout"],
+    queryFn: getLogout,
+    enabled: false,
+  });
+  const handleLogout = async () => {
+    const result = await refetch();
+    if (result.isSuccess) {
+      clearUser();
+      navigate("/login", { replace: true });
+    } else {
+      toast.error("Logout failed! Please try again.");
+    }
+  };
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -50,7 +66,11 @@ const Dashboard = () => {
             padding: "0 20px",
           }}
         >
-          <h1 style={{ color: "white" }}>Dashboard</h1>
+          <div className="flex justify-end items-center w-full h-full">
+            <Button onClick={handleLogout} color="blue" variant="solid">
+              Logout
+            </Button>
+          </div>
         </Header>
         <Content style={{ margin: "0 16px" }}>
           <Breadcrumb
@@ -75,5 +95,4 @@ const Dashboard = () => {
     </Layout>
   );
 };
-
 export default Dashboard;

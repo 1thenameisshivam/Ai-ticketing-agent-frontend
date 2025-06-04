@@ -1,10 +1,11 @@
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useNavigate } from "react-router";
 import { userStore } from "../zustand/store";
 
 const Authenticated = () => {
   const { user } = userStore();
+  const navigate = useNavigate();
   if (user == null) {
-    return <Navigate to={"/signup"} replace={true} />;
+    navigate("/login");
   }
   return (
     <div>

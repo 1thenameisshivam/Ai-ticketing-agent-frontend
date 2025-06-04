@@ -1,26 +1,60 @@
 import { useState } from "react";
-import { Button, Card, Drawer, Form, Input, Space } from "antd";
+import { Button, Card, Drawer, Empty, Form, Input, Space, Tag } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { createTicket } from "../axios/api";
-import { useMutation } from "@tanstack/react-query";
+import { createTicket, getTickets } from "../axios/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import dayjs from "dayjs";
+import { userStore } from "../zustand/store";
 const Ticket = () => {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
+  const { user } = userStore();
+  const queryClient = useQueryClient();
   const showDrawer = () => {
     setOpen(true);
   };
   const onClose = () => {
     setOpen(false);
   };
+  const { data } = useQuery({
+    queryKey: ["ticket"],
+    queryFn: getTickets,
+    keepPreviousData: true,
+  });
   const { mutate: createTicketMutation } = useMutation({
     mutationFn: async (values) => createTicket(values),
     onSuccess: () => {
       form.resetFields();
       setOpen(false);
-      console.log("Ticket created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["ticket"] });
+      toast.success("Ticket created successfully!");
     },
   });
+
+  const inProgress = data?.data?.tickets.filter(
+    (t) => t.status === "in-progress"
+  );
+  const closed = data?.data?.tickets.filter((t) => t.status === "closed");
+
+  const getStatusTag = (status) => {
+    if (status === "in-progress")
+      return <Tag color="processing">In Progress</Tag>;
+    if (status === "closed") return <Tag color="success">Closed</Tag>;
+    return <Tag color="default">{status}</Tag>;
+  };
+  console.log(data?.data?.tickets);
+  const getPriorityTag = (priority) => {
+    const colors = {
+      high: "red",
+      medium: "orange",
+      low: "blue",
+    };
+    return (
+      <Tag color={colors[priority] || "default"}>{priority.toUpperCase()}</Tag>
+    );
+  };
   const onFinish = (values) => {
     createTicketMutation(values);
     console.log("Success:", values);
@@ -36,23 +70,127 @@ const Ticket = () => {
         </Button>
       </div>
       <div
-        className="h-[65vh] w-full rounded-2xl bg-cover bg-center bg-no-repeat flex items-center justify-center"
+        className="h-[65vh] w-full rounded-2xl bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/sean3.svg')" }}
       >
-        Ticket
+        {data?.data?.tickets.length > 0 ? (
+          <>
+            <div className="flex">
+              <h2 className=" w-1/2 pl-4 pt-2 text-lg text-white font-semibold ">
+                🟡 In Progress
+              </h2>
+              <h2 className=" w-1/2 pl-3 pt-2 text-lg font-semibold mb-2">
+                ✅ Closed
+              </h2>
+            </div>
+            <div className="flex scrollbar overflow-y-auto hide-scrollbar h-[55vh] w-full p-4">
+              {/* In-Progress */}
+              <div className="w-1/2 pr-4 flex flex-col gap-3">
+                {inProgress?.map((ticket) => (
+                  <Card
+                    key={ticket._id}
+                    title={ticket.title}
+                    variant={"bordered"}
+                    className="mb-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-md text-white"
+                    extra={getStatusTag(ticket.status)}
+                  >
+                    <p>
+                      <strong>Description:</strong> {ticket.description}
+                    </p>
+                    <p>
+                      <strong>Assigned To:</strong> {ticket.assignedTo?.email}
+                    </p>
+                    {user?.user.role !== "user" && (
+                      <p>
+                        <strong>Deadline:</strong>
+                        <Tag color="cyan">
+                          {dayjs(ticket.deadline).format("DD MMM YYYY")}
+                        </Tag>
+                      </p>
+                    )}
+                    <p>
+                      <strong>Priority:</strong>{" "}
+                      {getPriorityTag(ticket.priority)}
+                    </p>
+                    {user?.user.role !== "user" && (
+                      <p>
+                        <strong>Skills:</strong>{" "}
+                        {ticket.relatedSkills?.join(", ")}
+                      </p>
+                    )}
+                    {user?.user.role !== "user" && (
+                      <p>
+                        <strong>Helpful Notes:</strong> {ticket.helpfulNotes}
+                      </p>
+                    )}
+                    <p className="text-gray-500 text-sm mt-2">
+                      Created on:{" "}
+                      {dayjs(ticket.createdAt).format("DD MMM YYYY")}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Closed */}
+              <div className="w-1/2 flex flex-col gap-3 ">
+                {closed?.map((ticket) => (
+                  <Card
+                    key={ticket._id}
+                    title={ticket.title}
+                    variant={"bordered"}
+                    className="mb-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-md text-white"
+                    extra={getStatusTag(ticket.status)}
+                  >
+                    <p>
+                      <strong>Description:</strong> {ticket.description}
+                    </p>
+                    <p>
+                      <strong>Assigned To:</strong> {ticket.assignedTo?.email}
+                    </p>
+                    <p>
+                      <strong>Deadline:</strong>{" "}
+                      <Tag color="cyan">
+                        {dayjs(ticket.deadline).format("DD MMM YYYY")}
+                      </Tag>
+                    </p>
+                    <p>
+                      <strong>Priority:</strong>{" "}
+                      {getPriorityTag(ticket.priority)}
+                    </p>
+                    <p>
+                      <strong>Skills:</strong>{" "}
+                      {ticket.relatedSkills?.join(", ")}
+                    </p>
+                    <p>
+                      <strong>Helpful Notes:</strong> {ticket.helpfulNotes}
+                    </p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Created on:{" "}
+                      {dayjs(ticket.createdAt).format("DD MMM YYYY")}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-black text-2xl flex items-center justify-center h-full">
+            <>🙁No Data Found</>
+          </p>
+        )}
       </div>
       <Drawer
-        title="Drawer with extra actions"
+        title="Raise a Ticket"
         placement={"right"}
         width={500}
         onClose={onClose}
         open={open}
         extra={
           <Space>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button type="primary" onClick={onClose}>
+            <Button onClick={() => form.resetFields()}>Clear</Button>
+            {/* <Button type="primary" onClick={onClose}>
               OK
-            </Button>
+            </Button> */}
           </Space>
         }
       >

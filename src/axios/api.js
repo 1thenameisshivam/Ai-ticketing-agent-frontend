@@ -5,3 +5,4 @@ export const getLogin = (userData) => api.post("/users/login", userData);
 export const getMe = () => api.get("/users/me");
 export const getLogout = () => api.get("/users/logout");
 export const createTicket = (ticketData) => api.post("/tickets", ticketData);
+export const getTickets = () => api.get("/tickets");

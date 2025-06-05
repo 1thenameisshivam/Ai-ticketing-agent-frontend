@@ -16,14 +16,19 @@ function getItem(label, key, icon, children) {
     label,
   };
 }
-const items = [
-  getItem(<NavLink to={"/"}>Ticket</NavLink>, "1", <PieChartOutlined />),
-  getItem(<NavLink to={"/create"}>Create</NavLink>, "2", <DesktopOutlined />),
-];
+
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const { clearUser } = userStore();
+  const { clearUser, user } = userStore();
+  const { role } = user?.user || {};
+
+  const items = [
+    getItem(<NavLink to={"/"}>Ticket</NavLink>, "1", <PieChartOutlined />),
+    getItem(<NavLink to={"/create"}>Create</NavLink>, "2", <DesktopOutlined />),
+    role === "admin" &&
+      getItem(<NavLink to={"/users"}>Users</NavLink>, "3", <DesktopOutlined />),
+  ];
   const { refetch } = useQuery({
     queryKey: ["logout"],
     queryFn: getLogout,

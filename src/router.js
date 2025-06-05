@@ -8,6 +8,7 @@ import Authenticated from "./layouts/Authenticated";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Ticket from "./pages/Ticket";
+import Users from "./pages/Users";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
               {
                 path: "/",
                 Component: Ticket,
+              },
+              {
+                path: "/users",
+                Component: Users,
               },
             ],
           },

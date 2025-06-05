@@ -44,7 +44,6 @@ const Ticket = () => {
     if (status === "closed") return <Tag color="success">Closed</Tag>;
     return <Tag color="default">{status}</Tag>;
   };
-  console.log(data?.data?.tickets);
   const getPriorityTag = (priority) => {
     const colors = {
       high: "red",

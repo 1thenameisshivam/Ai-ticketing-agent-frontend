@@ -1,28 +1,47 @@
 import { useState } from "react";
-import { Button, Card, Drawer, Empty, Form, Input, Space, Tag } from "antd";
+import {
+  Button,
+  Card,
+  Drawer,
+  Empty,
+  Form,
+  Input,
+  Popover,
+  Segmented,
+  Tag,
+} from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  ExclamationCircleOutlined,
+  RedoOutlined,
+} from "@ant-design/icons";
 import { createTicket, getTickets } from "../axios/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
-import { userStore } from "../zustand/store";
+import CreateTicketInfo from "../components/CreateTicketInfo";
+import CardDetails from "../components/CardDetails";
+
 const Ticket = () => {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
-  const { user } = userStore();
+  const [statusFilter, setStatusFilter] = useState("in-progress");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
   const queryClient = useQueryClient();
-  const showDrawer = () => {
-    setOpen(true);
-  };
-  const onClose = () => {
-    setOpen(false);
-  };
+
   const { data } = useQuery({
     queryKey: ["ticket"],
     queryFn: getTickets,
     keepPreviousData: true,
   });
+
   const { mutate: createTicketMutation } = useMutation({
     mutationFn: async (values) => createTicket(values),
     onSuccess: () => {
@@ -33,223 +52,176 @@ const Ticket = () => {
     },
   });
 
-  const inProgress = data?.data?.tickets.filter(
-    (t) => t.status === "in-progress"
-  );
-  const closed = data?.data?.tickets.filter((t) => t.status === "closed");
+  const tickets = data?.data?.tickets || [];
+  const filteredTickets = tickets.filter((t) => t.status === statusFilter);
+  const cardColor =
+    statusFilter === "in-progress"
+      ? "bg-blue-50 border-blue-100"
+      : "bg-green-50 border-green-100";
 
   const getStatusTag = (status) => {
-    if (status === "in-progress")
-      return <Tag color="processing">In Progress</Tag>;
-    if (status === "closed") return <Tag color="success">Closed</Tag>;
-    return <Tag color="default">{status}</Tag>;
-  };
-  const getPriorityTag = (priority) => {
-    const colors = {
-      high: "red",
-      medium: "orange",
-      low: "blue",
+    const tagMap = {
+      "in-progress": <Tag color="processing">In Progress</Tag>,
+      closed: <Tag color="success">Closed</Tag>,
     };
+    return tagMap[status] || <Tag color="default">{status}</Tag>;
+  };
+
+  const getPriorityTag = (priority) => {
+    const colors = { high: "red", medium: "orange", low: "blue" };
     return (
       <Tag color={colors[priority] || "default"}>{priority.toUpperCase()}</Tag>
     );
   };
-  const onFinish = (values) => {
-    createTicketMutation(values);
-    console.log("Success:", values);
-  };
-  const onFinishFailed = (errorInfo) => {
-    console.log("Failed:", errorInfo);
-  };
+
+  const onFinish = (values) => createTicketMutation(values);
+  const onClose = () => setOpen(false);
+
   return (
     <>
-      <div className="flex items-center justify-end">
-        <Button onClick={showDrawer} type="primary">
-          Create
-        </Button>
-      </div>
-      <div
-        className="h-[65vh] w-full rounded-2xl bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/sean3.svg')" }}
-      >
-        {data?.data?.tickets.length > 0 ? (
-          <>
-            <div className="flex">
-              <h2 className=" w-1/2 pl-4 pt-2 text-lg text-white font-semibold ">
-                🟡 In Progress
-              </h2>
-              <h2 className=" w-1/2 pl-3 pt-2 text-lg font-semibold mb-2">
-                ✅ Closed
-              </h2>
-            </div>
-            <div className="flex scrollbar overflow-y-auto hide-scrollbar h-[55vh] w-full p-4">
-              {/* In-Progress */}
-              <div className="w-1/2 pr-4 flex flex-col gap-3">
-                {inProgress?.map((ticket) => (
-                  <Card
-                    key={ticket._id}
-                    title={ticket.title}
-                    variant={"bordered"}
-                    className="mb-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-md text-white"
-                    extra={getStatusTag(ticket.status)}
-                  >
-                    <p>
-                      <strong>Description:</strong> {ticket.description}
-                    </p>
-                    <p>
-                      <strong>Assigned To:</strong> {ticket.assignedTo?.email}
-                    </p>
-                    {user?.user.role !== "user" && (
-                      <p>
-                        <strong>Deadline:</strong>
-                        <Tag color="cyan">
-                          {dayjs(ticket.deadline).format("DD MMM YYYY")}
-                        </Tag>
-                      </p>
-                    )}
-                    <p>
-                      <strong>Priority:</strong>{" "}
-                      {getPriorityTag(ticket.priority)}
-                    </p>
-                    {user?.user.role !== "user" && (
-                      <p>
-                        <strong>Skills:</strong>{" "}
-                        {ticket.relatedSkills?.join(", ")}
-                      </p>
-                    )}
-                    {user?.user.role !== "user" && (
-                      <p>
-                        <strong>Helpful Notes:</strong> {ticket.helpfulNotes}
-                      </p>
-                    )}
-                    <p className="text-gray-500 text-sm mt-2">
-                      Created on:{" "}
-                      {dayjs(ticket.createdAt).format("DD MMM YYYY")}
-                    </p>
-                  </Card>
-                ))}
-              </div>
+      <div className="px-6 py-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            🎟️ Ticket Dashboard
+          </h1>
+          <div className="flex gap-4">
+            <Popover
+              placement="top"
+              content={`Click to refresh tickets.This will fetch the latest tickets staus from the server.`}
+            >
+              <Button
+                onClick={() =>
+                  queryClient.invalidateQueries({ queryKey: ["ticket"] })
+                }
+                type="primary"
+                icon={<RedoOutlined />}
+              >
+                Refresh
+              </Button>
+            </Popover>
+            <Button
+              onClick={() => setOpen(true)}
+              type="primary"
+              className="rounded-lg px-5 py-2"
+            >
+              + Create Ticket
+            </Button>
+          </div>
+        </div>
 
-              {/* Closed */}
-              <div className="w-1/2 flex flex-col gap-3 ">
-                {closed?.map((ticket) => (
+        <div className="flex justify-center mb-6 ">
+          <Segmented
+            options={[
+              {
+                label: "In Progress",
+                value: "in-progress",
+                icon: <ClockCircleOutlined />,
+              },
+              {
+                label: "Closed",
+                value: "closed",
+                icon: <CheckCircleOutlined />,
+              },
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </div>
+        {filteredTickets?.length > 0 ? (
+          <>
+            <section className="bg-white rounded-3xl shadow-lg p-6 max-h-[70vh] hide-scrollbar overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTickets.map((ticket) => (
                   <Card
+                    onClick={() => {
+                      showModal();
+                      setSelectedTicket(ticket);
+                    }}
                     key={ticket._id}
-                    title={ticket.title}
-                    variant={"bordered"}
-                    className="mb-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-md text-white"
+                    title={
+                      <span className="font-semibold text-gray-700">
+                        {ticket.title}
+                      </span>
+                    }
+                    className={`rounded-xl border cursor-pointer ${cardColor} hover:shadow-md transition`}
                     extra={getStatusTag(ticket.status)}
                   >
-                    <p>
+                    <p className="text-gray-600 mb-1">
                       <strong>Description:</strong> {ticket.description}
                     </p>
-                    <p>
+                    <p className="text-gray-600 mb-1">
                       <strong>Assigned To:</strong> {ticket.assignedTo?.email}
                     </p>
-                    <p>
-                      <strong>Deadline:</strong>{" "}
-                      <Tag color="cyan">
-                        {dayjs(ticket.deadline).format("DD MMM YYYY")}
-                      </Tag>
-                    </p>
-                    <p>
+                    <p className="text-gray-600 mb-1">
                       <strong>Priority:</strong>{" "}
                       {getPriorityTag(ticket.priority)}
                     </p>
-                    <p>
-                      <strong>Skills:</strong>{" "}
-                      {ticket.relatedSkills?.join(", ")}
-                    </p>
-                    <p>
-                      <strong>Helpful Notes:</strong> {ticket.helpfulNotes}
-                    </p>
-                    <p className="text-gray-500 text-sm mt-2">
-                      Created on:{" "}
+                    <p className="text-gray-400 text-sm mt-2">
+                      Created on:
                       {dayjs(ticket.createdAt).format("DD MMM YYYY")}
                     </p>
                   </Card>
                 ))}
               </div>
-            </div>
+            </section>
           </>
         ) : (
-          <p className="text-black text-2xl flex items-center justify-center h-full">
-            <>🙁No Data Found</>
-          </p>
+          <Empty description="🙁 No Tickets Found" className="my-10" />
         )}
       </div>
+      <CardDetails
+        ticket={selectedTicket}
+        open={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+      />
       <Drawer
         title="Raise a Ticket"
-        placement={"right"}
+        placement="right"
         width={500}
         onClose={onClose}
         open={open}
-        extra={
-          <Space>
-            <Button onClick={() => form.resetFields()}>Clear</Button>
-            {/* <Button type="primary" onClick={onClose}>
-              OK
-            </Button> */}
-          </Space>
-        }
+        extra={<Button onClick={() => form.resetFields()}>Clear</Button>}
       >
-        <div>
-          <Card
-            title="Fill the ticket info"
-            variant="borderless"
-            style={{ width: "100%" }}
+        <Card title="Fill the ticket info" variant="borderless">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            autoComplete="off"
           >
-            <Form
-              form={form}
-              name="basic"
-              layout="vertical"
-              initialValues={{ remember: true }}
-              onFinish={onFinish}
-              onFinishFailed={onFinishFailed}
-              autoComplete="off"
+            <Form.Item
+              label="Ticket Title"
+              name="title"
+              rules={[
+                { required: true, message: "Please input the ticket title!" },
+              ]}
             >
-              <Form.Item
-                label="Ticket Title"
-                name="title"
-                rules={[
-                  { required: true, message: "Please input the ticket title!" },
-                ]}
-              >
-                <Input
-                  prefix={<ExclamationCircleOutlined />}
-                  placeholder="issue realted queryparam"
-                />
-              </Form.Item>
+              <Input
+                prefix={<ExclamationCircleOutlined />}
+                placeholder="Issue related queryparam"
+              />
+            </Form.Item>
 
-              <Form.Item
-                label="Ticket Description"
-                name="description"
-                rules={[
-                  { required: true, message: "Please Describe the issue!" },
-                ]}
-              >
-                <TextArea rows={4} placeholder="briefly describe the issue" />
-              </Form.Item>
-              <Form.Item label={null}>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
-          </Card>
-          <div className="mt-6 p-4 rounded-xl bg-gray-50 border">
-            <h3 className="font-semibold mb-2">After Ticket Creation:</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-1 text-sm">
-              <li>Your ticket will be analyzed by our agent.</li>
-              <li>It will be assigned to the best-fit moderator.</li>
-              <li>This process may take some time — please be patient.</li>
-              <li>You can track your ticket status on the Ticket Dashboard.</li>
-            </ul>
-          </div>
-        </div>
+            <Form.Item
+              label="Ticket Description"
+              name="description"
+              rules={[
+                { required: true, message: "Please describe the issue!" },
+              ]}
+            >
+              <TextArea rows={4} placeholder="Briefly describe the issue" />
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+        <CreateTicketInfo />
       </Drawer>
     </>
   );
 };
-
 export default Ticket;

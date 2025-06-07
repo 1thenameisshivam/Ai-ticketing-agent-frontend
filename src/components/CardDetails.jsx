@@ -10,9 +10,19 @@ import {
 import { Modal, Tag, Divider, Button } from "antd";
 import dayjs from "dayjs";
 import { userStore } from "../zustand/store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { closeTicket } from "../axios/api";
 
 const CardDetails = ({ ticket, open, setIsModalOpen }) => {
   const { user } = userStore();
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: async () => closeTicket(ticket?._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ticket"] });
+      setIsModalOpen(false);
+    },
+  });
   return (
     <Modal
       title={
@@ -83,9 +93,14 @@ const CardDetails = ({ ticket, open, setIsModalOpen }) => {
           </>
         )}
       </div>
-      {user?.user.role != "user" && (
-        <Button type="primary" className="mt-4 w-full">
-          Update status
+      {user?.user.role != "user" && ticket?.status != "closed" && (
+        <Button
+          onClick={mutate}
+          color="danger"
+          variant="solid"
+          className="mt-4 w-full"
+        >
+          Close Ticket
         </Button>
       )}
     </Modal>

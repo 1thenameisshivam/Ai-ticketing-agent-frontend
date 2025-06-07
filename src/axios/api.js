@@ -8,3 +8,5 @@ export const updateUser = (userData) => api.patch("/users/update", userData);
 export const getLogout = () => api.get("/users/logout");
 export const createTicket = (ticketData) => api.post("/tickets", ticketData);
 export const getTickets = () => api.get("/tickets");
+export const closeTicket = (ticketId) =>
+  api.patch(`/tickets/close/${ticketId}`);

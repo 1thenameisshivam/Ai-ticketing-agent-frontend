@@ -1,13 +1,16 @@
-import React from "react";
 import { Navigate, Outlet, useNavigate } from "react-router";
-import { userStore } from "../zustand/store";
+import userStore from "../zustand/store";
+import { useEffect } from "react";
 
 const NonAuth = () => {
-  const { user } = userStore();
+  const user = userStore((state) => state.user);
   const navigate = useNavigate();
-  if (user !== null) {
-    navigate("/");
-  }
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
   return (
     <div>
       <Outlet />

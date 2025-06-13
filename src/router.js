@@ -16,19 +16,19 @@ const router = createBrowserRouter([
     Component: Root,
     children: [
       {
-        path: "/",
+        path: "",
         Component: Authenticated,
         children: [
           {
-            path: "/",
+            path: "",
             Component: Dashboard,
             children: [
               {
-                path: "/",
+                path: "",
                 Component: Ticket,
               },
               {
-                path: "/users",
+                path: "users",
                 Component: Users,
               },
             ],
@@ -36,15 +36,15 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "/",
+        path: "non-auth",
         Component: NonAuth,
         children: [
           {
-            path: "/signup",
+            path: "signup",
             Component: Signup,
           },
           {
-            path: "/login",
+            path: "login",
             Component: Login,
           },
         ],

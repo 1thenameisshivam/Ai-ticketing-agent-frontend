@@ -5,8 +5,7 @@ import { LockOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import { getLogin } from "../axios/api";
 import toast from "react-hot-toast";
-import { Link, Navigate, useNavigate } from "react-router";
-
+import { Link, useNavigate } from "react-router";
 const Login = () => {
   // eslint-disable-next-line no-unused-vars
   const onFinishFailed = (errorInfo) => {

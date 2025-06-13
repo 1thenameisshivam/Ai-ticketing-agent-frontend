@@ -4,7 +4,7 @@ import { Breadcrumb, Button, Layout, Menu } from "antd";
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getLogout } from "../axios/api";
-import { userStore } from "../zustand/store";
+import userStore from "../zustand/store";
 import toast from "react-hot-toast";
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -20,7 +20,8 @@ function getItem(label, key, icon, children) {
 const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const { clearUser, user } = userStore();
+  const user = userStore((state) => state.user);
+  const clearUser = userStore((state) => state.clearUser);
   const { role } = user?.user || {};
 
   const items = [
@@ -38,7 +39,7 @@ const Dashboard = () => {
     const result = await refetch();
     if (result.isSuccess) {
       clearUser();
-      navigate("/login", { replace: true });
+      navigate("/non-auth/login", { replace: true });
     } else {
       toast.error("Logout failed! Please try again.");
     }

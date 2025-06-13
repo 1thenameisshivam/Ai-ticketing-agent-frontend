@@ -1,21 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../axios/api";
 import { Outlet } from "react-router";
-import { userStore } from "../zustand/store";
+import useUserStore from "../zustand/store";
 import { useEffect } from "react";
 
 const Root = () => {
-  const { setUser } = userStore();
-  const { data, isError, isSuccess } = useQuery({
+  const setUser = useUserStore((state) => state.setUser);
+
+  const { data, isSuccess, isError } = useQuery({
     queryKey: ["me"],
     queryFn: getMe,
+    retry: false,
   });
-
   useEffect(() => {
     if (data && isSuccess) {
       setUser(data.data);
     }
-  }, [data, setUser, isError, isSuccess]);
+  }, [data, isSuccess, isError, setUser]);
 
   return (
     <div>

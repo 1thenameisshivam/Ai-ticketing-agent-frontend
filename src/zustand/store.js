@@ -1,18 +1,21 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-export const userStore = create(
-  devtools(
-    (set) => ({
-      user: null,
-      setUser: (user) =>
-        set(() => ({
-          user: user,
-        })),
-      clearUser: () =>
-        set(() => ({
-          user: null,
-        })),
-    }),
-    { name: "userStore" }
-  )
+
+const userStore = create(
+  devtools((set) => ({
+    user: null,
+    loadingUser: true,
+    setUser: (user) =>
+      set(() => ({
+        user: user,
+        loadingUser: false,
+      })),
+    clearUser: () =>
+      set(() => ({
+        user: null,
+        loadingUser: false,
+      })),
+  }))
 );
+
+export default userStore;

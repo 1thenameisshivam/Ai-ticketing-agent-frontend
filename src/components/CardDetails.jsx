@@ -9,12 +9,12 @@ import {
 } from "@ant-design/icons";
 import { Modal, Tag, Divider, Button } from "antd";
 import dayjs from "dayjs";
-import { userStore } from "../zustand/store";
+import userStore from "../zustand/store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { closeTicket } from "../axios/api";
 
 const CardDetails = ({ ticket, open, setIsModalOpen }) => {
-  const { user } = userStore();
+  const user = userStore((state) => state.user);
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
     mutationFn: async () => closeTicket(ticket?._id),

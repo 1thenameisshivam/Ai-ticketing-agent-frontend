@@ -87,7 +87,8 @@ const Login = () => {
                   </Form.Item>
                 </Form>
                 <p>
-                  New to this platform <Link to={"/signup"}>Register here</Link>
+                  New to this platform{" "}
+                  <Link to={"/non-auth/signup"}>Register here</Link>
                 </p>
               </Card>
             </div>

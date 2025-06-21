@@ -84,7 +84,7 @@ const Signup = () => {
                 </Form.Item>
               </Form>
               <p>
-                Already a user <Link to={"/login"}>Login here!</Link>
+                Already a user <Link to={"/non-auth/login"}>Login here!</Link>
               </p>
             </Card>
           </div>

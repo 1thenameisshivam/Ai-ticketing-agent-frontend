@@ -41,7 +41,7 @@ const Ticket = () => {
     queryFn: getTickets,
     keepPreviousData: true,
   });
-
+  console.log(data);
   const { mutate: createTicketMutation } = useMutation({
     mutationFn: async (values) => createTicket(values),
     onSuccess: () => {
